@@ -2,22 +2,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SSActionManager : MonoBehaviour
+public class SSActionManager : MonoBehaviour, ISSActionCallback
 {
-    private Dictionary<int, SSAction> actions = new Dictionary<int, SSAction>();
-    private List<SSAction> waitingAdd = new List<SSAction>();
-    private List<int> waitingDelete = new List<int>();
+    private Dictionary<int, SSAction> actions = new Dictionary<int, SSAction>();    //aciton dictionary
+    private List<SSAction> waitingAdd = new List<SSAction>();                       //copy from tutorial
+    private List<int> waitingDelete = new List<int>();                                           
 
-    // Use this for initialization
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
     protected void Update()
     {
-        foreach (SSAction ac in waitingAdd) actions[ac.GetInstanceID()] = ac;
+        foreach (SSAction ac in waitingAdd)
+        {
+            actions[ac.GetInstanceID()] = ac;
+        }
         waitingAdd.Clear();
 
         foreach (KeyValuePair<int, SSAction> kv in actions)
@@ -30,13 +26,44 @@ public class SSActionManager : MonoBehaviour
             else if (ac.enable)
             {
                 ac.Update();
+            }
+        }
+
+        foreach (int key in waitingDelete)
+        {
+            SSAction ac = actions[key];
+            actions.Remove(key);
+            DestroyObject(ac);
+        }
+        waitingDelete.Clear();
+    }
+
+    protected void FixedUpdate()
+    {
+        foreach (SSAction ac in waitingAdd)
+        {
+            actions[ac.GetInstanceID()] = ac;
+        }
+        waitingAdd.Clear();
+
+        foreach (KeyValuePair<int, SSAction> kv in actions)
+        {
+            SSAction ac = kv.Value;
+            if (ac.destroy)
+            {
+                waitingDelete.Add(ac.GetInstanceID());
+            }
+            else if (ac.enable)
+            {
                 ac.FixedUpdate();
             }
         }
 
         foreach (int key in waitingDelete)
         {
-            SSAction ac = actions[key]; actions.Remove(key); DestroyObject(ac);
+            SSAction ac = actions[key];
+            actions.Remove(key);
+            DestroyObject(ac);
         }
         waitingDelete.Clear();
     }
@@ -48,5 +75,21 @@ public class SSActionManager : MonoBehaviour
         action.callback = manager;
         waitingAdd.Add(action);
         action.Start();
+    }
+
+    public void SSActionEvent(SSAction source, GameObject arrow = null)
+    {
+        //vibration
+        if (arrow != null)
+        {
+            ArrowTremble tremble = ArrowTremble.GetSSAction();
+            this.RunAction(arrow, tremble, this);
+        }
+        else
+        {
+            //reduce arrow
+            FirstSceneController scene_controller = (FirstSceneController)SSDirector.GetInstance().CurrentScenceController;
+            scene_controller.CheckGamestatus();
+        }
     }
 }
