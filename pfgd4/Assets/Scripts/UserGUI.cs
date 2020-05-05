@@ -71,7 +71,7 @@ public class UserGUI : MonoBehaviour {
         }
         else
         {
-            GUI.Label(new Rect(Screen.width / 2 - 60, Screen.width / 2 - 320, 100, 100), "Shoot the target!", over_style);
+          
             GUI.Label(new Rect(Screen.width / 2 - 150, Screen.width / 2 - 220, 400, 100), "WSAD or arrow keys to move bow, left click to shoot", text_style);
             if (GUI.Button(new Rect(Screen.width / 2 - 50, Screen.width / 2 - 150, 100, 50), "STRAT"))
             {
